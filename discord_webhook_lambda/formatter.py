@@ -10,6 +10,12 @@ STATE_COLORS: Dict[str, int] = {
     "INSUFFICIENT_DATA": 0xF1C40F,  # yellow
 }
 
+STATE_EMOJIS: Dict[str, str] = {
+    "OK": "✅",
+    "ALARM": "🚨",
+    "INSUFFICIENT_DATA": "⚠️",
+}
+
 
 def try_parse_json(message: str) -> Optional[Dict[str, Any]]:
     try:
@@ -75,13 +81,19 @@ def format_cloudwatch_alarm_to_embed(alarm: Dict[str, Any]) -> Dict[str, Any]:
     color = STATE_COLORS.get(str(state_value).upper(), 0x95A5A6)  # default gray
     console_url = build_console_alarm_url(region, alarm_name)
 
-    title = f"CloudWatch Alarm: {alarm_name}"
-    if console_url:
-        title = f"[{title}]({console_url})"
+    # Build concise title with emoji and alarm name; link via embed url
+    emoji_for_state = (
+        STATE_EMOJIS.get(str(state_value).upper()) if state_value else None
+    )
+    title_name = str(alarm_name) if alarm_name else "CloudWatch Alarm"
+    title = f"{emoji_for_state} {title_name}" if emoji_for_state else title_name
 
     fields: List[Dict[str, Any]] = []
     if state_value:
-        fields.append({"name": "State", "value": str(state_value), "inline": True})
+        state_text = str(state_value)
+        emoji = emoji_for_state
+        state_display = f"{emoji} {state_text}" if emoji else state_text
+        fields.append({"name": "State", "value": state_display, "inline": True})
     if region:
         fields.append({"name": "Region", "value": str(region), "inline": True})
     if metric_name:
@@ -98,6 +110,8 @@ def format_cloudwatch_alarm_to_embed(alarm: Dict[str, Any]) -> Dict[str, Any]:
         "description": state_reason or "",
         "color": color,
     }
+    if console_url:
+        embed["url"] = console_url
     if change_time:
         embed["timestamp"] = change_time
     if fields:
