@@ -1,0 +1,8 @@
+template-file-path: template.yaml
+
+parameters:
+  DiscordWebhookUrl: "DISCORD_WEBHOOK_URL"
+
+tags:
+  Project: discord-webhook
+  ManagedBy: cloudformation-gitsync
