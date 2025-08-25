@@ -6,7 +6,7 @@ This project contains an AWS Lambda function that receives CloudWatch alarm noti
 
 - Parses CloudWatch Alarm SNS messages and formats Discord embeds
 - Robust HTTP client with timeouts and exponential backoff retries
-- Minimal dependencies (httpx)
+- Minimal dependencies (stdlib only)
 - Packaged for AWS SAM deployment
 
 ## Requirements
@@ -89,6 +89,14 @@ lambda_handler({
   ]
 }, None)
 ```
+
+## Troubleshooting
+
+- 403 Forbidden from Discord webhook:
+  - Ensure the webhook URL is correct and not expired/regenerated.
+  - Replace legacy `https://discordapp.com/` with `https://discord.com/`.
+  - Make sure your environment allows outbound HTTPS to `discord.com`.
+  - The function now includes a `User-Agent` header and surfaces the response body for easier debugging.
 
 2. Or deploy with SAM and publish a test message to the created SNS Topic using the AWS Console or CLI.
 

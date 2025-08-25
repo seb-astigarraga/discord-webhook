@@ -42,7 +42,12 @@ class DiscordClient:
                 request = urllib.request.Request(
                     self.webhook_url,
                     data=json.dumps(payload).encode("utf-8"),
-                    headers={"Content-Type": "application/json"},
+                    headers={
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        # Some CDNs in front of Discord reject requests without a UA
+                        "User-Agent": "DiscordWebhookLambda/1.0 (+https://github.com/)",
+                    },
                     method="POST",
                 )
                 with urllib.request.urlopen(
@@ -99,7 +104,17 @@ class DiscordClient:
                     sleep(self.backoff_seconds * (2 ** (attempt - 1)))
                     continue
                 # 4xx (except 429): do not retry
-                raise exc
+                error_body: str = ""
+                try:
+                    error_body = exc.read().decode("utf-8", "ignore")
+                except Exception:
+                    # If we can't read the body, proceed without it
+                    pass
+                # Include body to aid troubleshooting (e.g., Discord may return JSON describing the error)
+                raise RuntimeError(
+                    f"Discord webhook request failed with {exc.code} {exc.reason}. "
+                    f"Body: {error_body[:500]}"
+                )
             except (urllib.error.URLError, TimeoutError) as exc:
                 last_error = exc
                 attempt += 1

@@ -18,6 +18,11 @@ def lambda_handler(
     webhook_url = _get_env("DISCORD_WEBHOOK_URL")
     if not webhook_url:
         raise RuntimeError("DISCORD_WEBHOOK_URL is not set")
+    # Normalize legacy domain to avoid extra redirects and potential 403s in strict egress
+    if webhook_url.startswith("https://discordapp.com/"):
+        webhook_url = webhook_url.replace(
+            "https://discordapp.com/", "https://discord.com/", 1
+        )
 
     client = DiscordClient(webhook_url=webhook_url)
 
