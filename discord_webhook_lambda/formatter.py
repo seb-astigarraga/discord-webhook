@@ -91,9 +91,7 @@ def format_cloudwatch_alarm_to_embed(alarm: Dict[str, Any]) -> Dict[str, Any]:
     fields: List[Dict[str, Any]] = []
     if state_value:
         state_text = str(state_value)
-        emoji = emoji_for_state
-        state_display = f"{emoji} {state_text}" if emoji else state_text
-        fields.append({"name": "State", "value": state_display, "inline": True})
+        fields.append({"name": "State", "value": state_text, "inline": True})
     if region:
         fields.append({"name": "Region", "value": str(region), "inline": True})
     if metric_name:
