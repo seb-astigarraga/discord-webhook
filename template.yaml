@@ -28,10 +28,8 @@ Resources:
   DiscordWebhookFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: index.handler
-      InlineCode: |
-        def handler(event, context):
-            return {"statusCode": 200, "body": "OK"}
+      Handler: discord_webhook_lambda.handler.lambda_handler
+      CodeUri: .
       Description: Forwards CloudWatch alarm notifications from SNS to Discord webhook
       Environment:
         Variables:
