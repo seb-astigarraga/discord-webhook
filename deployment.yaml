@@ -1,0 +1,5 @@
+template-file-path: deployment.yaml
+parameters:
+  DISCORD_WEBHOOK_URL: >-
+    https://discord.com/api/webhooks/1409327722857103390/iHqyDMr-UxMIiL95STT_UejjB2y8aKFRJHNVcXS4xpewEt_TN_WcccwUpg8QyYLA8yaY
+tags: {}
