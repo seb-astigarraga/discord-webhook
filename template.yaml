@@ -1,6 +1,8 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Discord Webhook Forwarder for CloudWatch Alarms (Python 3.12)
 
+Transform: AWS::Serverless-2016-10-31
+
 Parameters:
   DiscordWebhookUrl:
     Type: String
@@ -26,8 +28,10 @@ Resources:
   DiscordWebhookFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: .
-      Handler: discord_webhook_lambda.handler.lambda_handler
+      Handler: index.handler
+      InlineCode: |
+        def handler(event, context):
+            return {"statusCode": 200, "body": "OK"}
       Description: Forwards CloudWatch alarm notifications from SNS to Discord webhook
       Environment:
         Variables:
@@ -37,8 +41,6 @@ Resources:
           Type: SNS
           Properties:
             Topic: !Ref AlarmTopic
-    Metadata:
-      BuildMethod: python3.12
 
 Outputs:
   FunctionName:
