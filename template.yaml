@@ -7,15 +7,6 @@ Parameters:
     NoEcho: true
     Description: Discord webhook URL
 
-Globals:
-  Function:
-    Runtime: python3.12
-    Timeout: 15
-    MemorySize: 256
-    Architectures:
-      - x86_64
-    Tracing: Active
-
 Resources:
   AlarmTopic:
     Type: AWS::SNS::Topic
@@ -23,20 +14,52 @@ Resources:
       TopicName: !Sub "${AWS::StackName}-cloudwatch-alerts"
       DisplayName: "CloudWatch Alerts"
 
-  DiscordWebhookFunction:
-    Type: AWS::Serverless::Function
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
     Properties:
-      Handler: discord_webhook_lambda.handler.lambda_handler
-      CodeUri: .
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  DiscordWebhookFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.12
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 15
+      MemorySize: 256
+      Architectures:
+        - x86_64
       Description: Forwards CloudWatch alarm notifications from SNS to Discord webhook
       Environment:
         Variables:
           DISCORD_WEBHOOK_URL: !Ref DiscordWebhookUrl
-      Events:
-        AlarmSNSEvent:
-          Type: SNS
-          Properties:
-            Topic: !Ref AlarmTopic
+      Code:
+        ZipFile: |
+          def handler(event, context):
+              return {"statusCode": 200, "body": "OK"}
+
+  LambdaPermissionForSNS:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref DiscordWebhookFunction
+      Action: lambda:InvokeFunction
+      Principal: sns.amazonaws.com
+      SourceArn: !Ref AlarmTopic
+
+  AlarmSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: !Ref AlarmTopic
+      Protocol: lambda
+      Endpoint: !GetAtt DiscordWebhookFunction.Arn
 
 Outputs:
   FunctionName:
