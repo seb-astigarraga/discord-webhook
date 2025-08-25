@@ -5,9 +5,3 @@ parameters:
 
 tags:
   Project: discord-webhook
-  ManagedBy: cloudformation-gitsync
-  Stack: Discord-Monitoring
-
-capabilities:
-  - CAPABILITY_IAM
-  - CAPABILITY_AUTO_EXPAND
